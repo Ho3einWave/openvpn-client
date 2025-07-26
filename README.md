@@ -34,11 +34,11 @@ A Node.js wrapper for OpenVPN client that provides a simple and programmatic way
 ## Installation
 
 ```bash
-npm install openvpn-client
+npm install openvpn-client-ts
 # or
-pnpm add openvpn-client
+pnpm add openvpn-client-ts
 # or
-yarn add openvpn-client
+yarn add openvpn-client-ts
 ```
 
 ## Prerequisites
@@ -72,7 +72,7 @@ sudo pacman -S openvpn
 ## Quick Start
 
 ```typescript
-import { OpenVpn } from 'openvpn-client'
+import { OpenVpn } from 'openvpn-client-ts'
 
 // Create an instance with a config file
 const openVpn = new OpenVpn('/path/to/config.ovpn', 'username', 'password')
@@ -104,7 +104,7 @@ await openVpn.disconnect()
 ### Using Configuration File
 
 ```typescript
-import { OpenVpn } from 'openvpn-client'
+import { OpenVpn } from 'openvpn-client-ts'
 
 const openVpn = new OpenVpn(
   '/path/to/your/config.ovpn',
@@ -135,7 +135,7 @@ await openVpn.connect()
 ### Using Configuration String
 
 ```typescript
-import { OpenVpn } from 'openvpn-client'
+import { OpenVpn } from 'openvpn-client-ts'
 
 const configContent = `
 client
@@ -180,7 +180,7 @@ await openVpn.connect()
 ### Advanced Usage with Error Handling
 
 ```typescript
-import { OpenVpn } from 'openvpn-client'
+import { OpenVpn } from 'openvpn-client-ts'
 
 async function connectToVpn() {
   const openVpn = new OpenVpn('/path/to/config.ovpn', 'user', 'pass')
