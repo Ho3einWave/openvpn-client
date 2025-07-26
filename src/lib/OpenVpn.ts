@@ -8,7 +8,7 @@ import fkill from 'fkill'
 import psList from 'ps-list'
 import { sleep } from '../utils/sleep'
 
-type Status =
+export type Status =
   | 'connecting'
   | 'connected'
   | 'disconnected'

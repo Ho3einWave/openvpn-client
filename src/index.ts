@@ -1,1 +1,1 @@
-export { OpenVpn } from './lib/OpenVpn'
+export { OpenVpn, type Status } from './lib/OpenVpn'
