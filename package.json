@@ -47,6 +47,7 @@
     "@sxzz/prettier-config": "^2.2.1",
     "@types/node": "^22.15.17",
     "bumpp": "^10.1.0",
+    "dotenv": "^17.2.1",
     "eslint": "^9.26.0",
     "happy-dom": "^17.4.7",
     "prettier": "^3.5.3",

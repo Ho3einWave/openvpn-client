@@ -27,6 +27,9 @@ importers:
       bumpp:
         specifier: ^10.1.0
         version: 10.2.0
+      dotenv:
+        specifier: ^17.2.1
+        version: 17.2.1
       eslint:
         specifier: ^9.26.0
         version: 9.29.0(jiti@2.4.2)
@@ -1071,6 +1074,10 @@ packages:
 
   dotenv@16.5.0:
     resolution: {integrity: sha512-m/C+AwOAr9/W1UOIZUo232ejMNnJAJtYQjUbHoNTBNTJSvqzzDh7vnrei3o3r3m9blf6ZoDkvcw0VmozNRFJxg==}
+    engines: {node: '>=12'}
+
+  dotenv@17.2.1:
+    resolution: {integrity: sha512-kQhDYKZecqnM0fCnzI5eIv5L4cAe/iRI+HqMbO/hbRdTAeXDG+M9FjipUxNfbARuEg4iHIbhnhs78BCHNbSxEQ==}
     engines: {node: '>=12'}
 
   dts-resolver@2.1.1:
@@ -3185,6 +3192,8 @@ snapshots:
   diff@8.0.2: {}
 
   dotenv@16.5.0: {}
+
+  dotenv@17.2.1: {}
 
   dts-resolver@2.1.1: {}
 

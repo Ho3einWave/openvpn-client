@@ -1,10 +1,19 @@
+import process from 'node:process'
+import dotenv from 'dotenv'
 import psList from 'ps-list'
 import { describe, expect, it } from 'vitest'
 import { OpenVpn } from '../../src/lib/OpenVpn'
 
+dotenv.config()
+
+const username = process.env.OVPN_USERNAME!
+const password = process.env.OVPN_PASSWORD!
+const configPath = process.env.OVPN_CONFIG_PATH!
+
 describe('OpenVpn', () => {
   it('should connect openvpn', { timeout: 15 * 1000 }, async () => {
-    const openVpn = new OpenVpn('iran1.ovpn', 'test21@test21', '123456')
+    const openVpn = new OpenVpn(configPath, username, password)
+
     openVpn.connect()
     await new Promise((resolve) => {
       openVpn.on('status', async (status) => {
@@ -22,7 +31,7 @@ describe('OpenVpn', () => {
   })
 
   it('should connect and disconnect', { timeout: 15 * 1000 }, async () => {
-    const openVpn = new OpenVpn('iran1.ovpn', 'test21@test21', '123456')
+    const openVpn = new OpenVpn(configPath, username, password)
     openVpn.connect()
     await new Promise((resolve) => {
       openVpn.on('status', async (status) => {
@@ -51,7 +60,7 @@ describe('OpenVpn', () => {
     'should change status when network not available',
     { timeout: 60 * 1000 },
     async () => {
-      const openVpn = new OpenVpn('iran1.ovpn', 'test21@test21', '123456')
+      const openVpn = new OpenVpn(configPath, username, password)
       openVpn.connect()
       await new Promise((resolve) => {
         openVpn.on('status', (status) => {
