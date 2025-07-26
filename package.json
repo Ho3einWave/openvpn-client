@@ -1,6 +1,7 @@
 {
   "name": "openvpn-client",
   "version": "0.0.0",
+  "packageManager": "pnpm@10.11.0",
   "description": "A wrapper for openvpn client",
   "type": "module",
   "license": "MIT",
