@@ -215,7 +215,7 @@ async function connectToVpn() {
 ### Constructor
 
 ```typescript
-new OpenVpn(configPath: string, username?: string, password?: string)
+new OpenVpn(configPath, username, password)
 ```
 
 - `configPath`: Path to the OpenVPN configuration file (.ovpn)
