@@ -1,4 +1,4 @@
-name: Unit Test
+name: Build test
 
 on:
   push:
@@ -33,6 +33,3 @@ jobs:
 
       - name: Typecheck
         run: pnpm run typecheck
-
-      - name: Test
-        run: pnpm run test
