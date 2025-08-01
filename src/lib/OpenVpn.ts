@@ -25,14 +25,21 @@ export class OpenVpn {
   private configPath: string
   private username?: string
   private password?: string
+  private customFlags?: string[]
   private process?: ChildProcess
   private eventEmitter = new EventEmitter()
   private status: Status = 'stopped'
 
-  constructor(configPath: string, username?: string, password?: string) {
+  constructor(
+    configPath: string,
+    username?: string,
+    password?: string,
+    customFlags?: string[],
+  ) {
     this.configPath = configPath
     this.username = username
     this.password = password
+    this.customFlags = customFlags
   }
 
   public static createFromConfig(
@@ -140,6 +147,9 @@ export class OpenVpn {
     await this.bootstrap()
     const execPath = this.getExecPath()
     const args = ['--config', this.configPath]
+    if (this.customFlags && this.customFlags.length > 0) {
+      args.push(...this.customFlags)
+    }
 
     const executeCommand = `"${execPath}" ${args.join(' ')}`
 

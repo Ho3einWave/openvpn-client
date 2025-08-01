@@ -56,26 +56,40 @@ describe('OpenVpn', () => {
     })
   })
 
-  it(
-    'should change status when network not available',
-    { timeout: 60 * 1000 },
-    async () => {
-      const openVpn = new OpenVpn(configPath, username, password)
-      openVpn.connect()
-      await new Promise((resolve) => {
-        openVpn.on('status', (status) => {
-          if (status === 'connected') {
-            // eslint-disable-next-line no-console
-            console.log(
-              '[TEST] Connected, disconnect the internet connection manually',
-            )
-          }
-          if (status === 'reconnecting') {
-            openVpn.disconnect()
-            resolve(true)
-          }
-        })
+  // it(
+  //   'should change status when network not available',
+  //   { timeout: 60 * 1000 },
+  //   async () => {
+  //     const openVpn = new OpenVpn(configPath, username, password)
+  //     openVpn.connect()
+  //     await new Promise((resolve) => {
+  //       openVpn.on('status', (status) => {
+  //         if (status === 'connected') {
+  //           // eslint-disable-next-line no-console
+  //           console.log(
+  //             '[TEST] Connected, disconnect the internet connection manually',
+  //           )
+  //         }
+  //         if (status === 'reconnecting') {
+  //           openVpn.disconnect()
+  //           resolve(true)
+  //         }
+  //       })
+  //     })
+  //   },
+  // )
+
+  it('should connect with custom flags', { timeout: 60 * 1000 }, async () => {
+    const openVpn = new OpenVpn(configPath, username, password, [
+      '--auth-nocache',
+    ])
+    openVpn.connect()
+    await new Promise((resolve) => {
+      openVpn.on('status', (status) => {
+        if (status === 'connected') {
+          resolve(true)
+        }
       })
-    },
-  )
+    })
+  })
 })
