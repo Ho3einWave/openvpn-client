@@ -87,6 +87,7 @@ describe('OpenVpn', () => {
     await new Promise((resolve) => {
       openVpn.on('status', (status) => {
         if (status === 'connected') {
+          openVpn.disconnect()
           resolve(true)
         }
       })
