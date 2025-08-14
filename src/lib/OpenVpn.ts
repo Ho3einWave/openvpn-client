@@ -6,6 +6,7 @@ import path from 'node:path'
 import process from 'node:process'
 import fkill from 'fkill'
 import psList from 'ps-list'
+import { OpenvpnExecutableNames } from '../constants/openvpn'
 import { sleep } from '../utils/sleep'
 
 export type Status =
@@ -230,12 +231,9 @@ export class OpenVpn {
 
   public async getProcesses() {
     const processes = await psList()
-    const platform = os.platform()
-    if (platform === 'win32') {
-      return processes.filter((process) => process.name === 'openvpn.exe')
-    } else {
-      return processes.filter((process) => process.name === 'openvpn')
-    }
+    return processes.filter((process) =>
+      OpenvpnExecutableNames.includes(process.name),
+    )
   }
 
   public async killProcesses() {
