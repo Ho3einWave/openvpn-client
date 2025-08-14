@@ -41,7 +41,8 @@
   },
   "dependencies": {
     "fkill": "^9.0.0",
-    "ps-list": "^8.1.1"
+    "ps-list": "^8.1.1",
+    "systeminformation": "^5.27.7"
   },
   "devDependencies": {
     "@sxzz/eslint-config": "^7.0.1",
