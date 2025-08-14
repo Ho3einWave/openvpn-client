@@ -194,8 +194,8 @@ export class OpenVpn {
         this.eventEmitter.removeListener('status', statusListener)
         if (this.status !== 'connected') {
           reject(new Error('Connection timeout'))
+          this.disconnect()
         }
-        this.disconnect()
       }, 30000) // 30 seconds timeout
     })
   }
