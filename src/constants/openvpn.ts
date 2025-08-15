@@ -3,4 +3,5 @@ export const OpenvpnExecutableNames = [
   'openvpn',
   'OpenVPNConnect.exe',
   'openvpnserv.exe',
+  'ovpnhelper_service.exe',
 ]
