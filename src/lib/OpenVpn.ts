@@ -12,6 +12,7 @@ import { sleep } from '../utils/sleep'
 export type Status =
   | 'connecting'
   | 'connected'
+  | 'disconnecting'
   | 'disconnected'
   | 'reconnecting'
   | 'stopped'
@@ -209,6 +210,10 @@ export class OpenVpn {
   }
 
   public async disconnect(graceful = true, timeoutMs = 5000) {
+    // Set disconnecting status
+    this.status = 'disconnecting'
+    this.eventEmitter.emit('status', this.status)
+
     // Try graceful shutdown first with SIGINT (Ctrl+C equivalent)
     if (this.process && graceful) {
       this.process.kill('SIGINT')
