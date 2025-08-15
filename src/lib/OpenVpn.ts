@@ -139,8 +139,16 @@ export class OpenVpn {
   private async bootstrap() {
     this.status = 'connecting'
     this.eventEmitter.emit('status', this.status)
-    this.process?.kill('SIGINT')
-    await this.killProcesses()
+
+    // Try graceful shutdown of current process first
+    if (this.process) {
+      this.process.kill('SIGINT')
+      // Give the current process some time to shut down gracefully
+      await sleep(1000)
+    }
+
+    // Clean up any remaining OpenVPN processes gracefully
+    await this.killProcesses(true, 5000)
     this.process = undefined
   }
 
@@ -200,10 +208,16 @@ export class OpenVpn {
     })
   }
 
-  public async disconnect() {
-    // this should kill all openvpn processes
-    this.process?.kill('SIGINT')
-    await this.killProcesses()
+  public async disconnect(graceful = true, timeoutMs = 5000) {
+    // Try graceful shutdown first with SIGINT (Ctrl+C equivalent)
+    if (this.process && graceful) {
+      this.process.kill('SIGINT')
+      // Give the current process some time to shut down gracefully
+      await sleep(Math.min(2000, timeoutMs / 2))
+    }
+
+    // Clean up any remaining OpenVPN processes
+    await this.killProcesses(graceful, timeoutMs)
     this.process = undefined
     this.status = 'disconnected'
     this.eventEmitter.emit('status', this.status)
@@ -237,11 +251,41 @@ export class OpenVpn {
     )
   }
 
-  public async killProcesses() {
+  public async killProcesses(graceful = true, timeoutMs = 5000) {
     let processes = await this.getProcesses()
+
+    if (processes.length === 0) {
+      return
+    }
+
+    if (graceful) {
+      // First try graceful shutdown with SIGINT (Ctrl+C equivalent)
+      try {
+        for (const process of processes) {
+          await fkill(process.pid, { force: false })
+        }
+
+        // Wait for processes to terminate gracefully
+        const startTime = Date.now()
+        while (Date.now() - startTime < timeoutMs) {
+          await sleep(500)
+          processes = await this.getProcesses()
+          if (processes.length === 0) {
+            return // All processes terminated gracefully
+          }
+        }
+      } catch {
+        // If graceful shutdown fails, we'll fall back to force kill
+      }
+    }
+
+    // Force kill remaining processes if graceful shutdown failed or wasn't requested
     try {
-      for (const process of processes) {
-        await fkill(process.pid, { force: true })
+      processes = await this.getProcesses()
+      if (processes.length > 0) {
+        for (const process of processes) {
+          await fkill(process.pid, { force: true })
+        }
       }
     } catch {
       await sleep(1000)
