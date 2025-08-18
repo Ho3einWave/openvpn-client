@@ -1,4 +1,4 @@
-import { exec, type ChildProcess } from 'node:child_process'
+import { spawn, type ChildProcess } from 'node:child_process'
 import { EventEmitter } from 'node:events'
 import fs from 'node:fs'
 import os from 'node:os'
@@ -161,10 +161,9 @@ export class OpenVpn {
       args.push(...this.customFlags)
     }
 
-    const executeCommand = `"${execPath}" ${args.join(' ')}`
-
-    const process = exec(executeCommand, {
+    const process = spawn(execPath, args, {
       windowsHide: !showConsole,
+      detached: showConsole,
     })
 
     this.process = process
