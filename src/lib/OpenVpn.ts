@@ -203,7 +203,7 @@ export class OpenVpn {
       // Add timeout to avoid hanging indefinitely
       setTimeout(() => {
         this.eventEmitter.removeListener('status', statusListener)
-        if (this.status !== 'connected') {
+        if (this.status !== 'connected' && this.status !== 'disconnected') {
           reject(new Error('Connection timeout'))
           this.disconnect()
         }
