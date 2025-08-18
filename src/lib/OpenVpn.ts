@@ -145,15 +145,15 @@ export class OpenVpn {
     if (this.process) {
       this.process.kill('SIGINT')
       // Give the current process some time to shut down gracefully
-      await sleep(1000)
+      await sleep(500)
     }
 
     // Clean up any remaining OpenVPN processes gracefully
-    await this.killProcesses(true, 5000)
+    await this.killProcesses(true, 1000)
     this.process = undefined
   }
 
-  public async connect() {
+  public async connect(showConsole = false) {
     await this.bootstrap()
     const execPath = this.getExecPath()
     const args = ['--config', this.configPath]
@@ -163,7 +163,9 @@ export class OpenVpn {
 
     const executeCommand = `"${execPath}" ${args.join(' ')}`
 
-    const process = exec(executeCommand)
+    const process = exec(executeCommand, {
+      windowsHide: !showConsole,
+    })
 
     this.process = process
 
@@ -209,7 +211,7 @@ export class OpenVpn {
     })
   }
 
-  public async disconnect(graceful = true, timeoutMs = 5000) {
+  public async disconnect(graceful = true, timeoutMs = 1000) {
     // Set disconnecting status
     this.status = 'disconnecting'
     this.eventEmitter.emit('status', this.status)
@@ -218,7 +220,7 @@ export class OpenVpn {
     if (this.process && graceful) {
       this.process.kill('SIGINT')
       // Give the current process some time to shut down gracefully
-      await sleep(Math.min(2000, timeoutMs / 2))
+      await sleep(Math.min(500, timeoutMs / 2))
     }
 
     // Clean up any remaining OpenVPN processes
@@ -231,7 +233,7 @@ export class OpenVpn {
     await this.cleanupTempConfig()
 
     return new Promise((resolve) => {
-      setTimeout(resolve, 1000)
+      setTimeout(resolve, 250)
     })
   }
 
@@ -256,7 +258,7 @@ export class OpenVpn {
     )
   }
 
-  public async killProcesses(graceful = true, timeoutMs = 5000) {
+  public async killProcesses(graceful = true, timeoutMs = 1000) {
     let processes = await this.getProcesses()
 
     if (processes.length === 0) {
