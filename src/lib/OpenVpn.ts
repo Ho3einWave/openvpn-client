@@ -340,6 +340,13 @@ export class OpenVpn {
       this.status = 'reconnecting'
       this.eventEmitter.emit('status', this.status)
     }
+    if (
+      line.includes('Successful ARP Flush on interface') &&
+      this.status === 'reconnecting'
+    ) {
+      this.status = 'connected'
+      this.eventEmitter.emit('status', this.status)
+    }
   }
 
   private handleChunk(chunk: any) {
