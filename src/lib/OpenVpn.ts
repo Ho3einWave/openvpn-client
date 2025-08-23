@@ -202,7 +202,12 @@ export class OpenVpn {
       // Add timeout to avoid hanging indefinitely
       setTimeout(() => {
         this.eventEmitter.removeListener('status', statusListener)
-        if (this.status !== 'connected' && this.status !== 'disconnected') {
+        if (
+          this.status !== 'connected' &&
+          this.status !== 'disconnected' &&
+          this.status !== 'reconnecting' &&
+          this.status !== 'disconnecting'
+        ) {
           reject(new Error('Connection timeout'))
           this.disconnect()
         }
@@ -212,8 +217,14 @@ export class OpenVpn {
 
   public async disconnect(graceful = true, timeoutMs = 1000) {
     // Set disconnecting status
-    this.status = 'disconnecting'
-    this.eventEmitter.emit('status', this.status)
+    if (
+      this.status !== 'disconnected' &&
+      this.status !== 'stopped' &&
+      this.status !== 'disconnecting'
+    ) {
+      this.status = 'disconnecting'
+      this.eventEmitter.emit('status', this.status)
+    }
 
     // Try graceful shutdown first with SIGINT (Ctrl+C equivalent)
     if (this.process && graceful) {
@@ -225,8 +236,14 @@ export class OpenVpn {
     // Clean up any remaining OpenVPN processes
     await this.killProcesses(graceful, timeoutMs)
     this.process = undefined
-    this.status = 'disconnected'
-    this.eventEmitter.emit('status', this.status)
+    if (
+      this.status !== 'disconnected' &&
+      this.status !== 'stopped' &&
+      this.status !== 'disconnecting'
+    ) {
+      this.status = 'disconnected'
+      this.eventEmitter.emit('status', this.status)
+    }
 
     // Clean up temp config file if it exists
     await this.cleanupTempConfig()
