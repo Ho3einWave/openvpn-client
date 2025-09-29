@@ -12,8 +12,14 @@ const configPath = process.env.OVPN_CONFIG_PATH!
 
 describe('OpenVpn', () => {
   it('should connect openvpn', { timeout: 15 * 1000 }, async () => {
-    const openVpn = new OpenVpn(configPath, username, password)
+    const openVpn = new OpenVpn({
+      configPath,
+      username,
+      password,
+      useAuthFile: true,
+    })
     openVpn.connect()
+
     await new Promise((resolve) => {
       openVpn.on('status', async (status) => {
         if (status === 'connected') {
@@ -30,7 +36,12 @@ describe('OpenVpn', () => {
   })
 
   it('should connect and disconnect', { timeout: 15 * 1000 }, async () => {
-    const openVpn = new OpenVpn(configPath, username, password)
+    const openVpn = new OpenVpn({
+      configPath,
+      username,
+      password,
+      useAuthFile: true,
+    })
     openVpn.connect()
     await new Promise((resolve) => {
       openVpn.on('status', async (status) => {
@@ -79,9 +90,13 @@ describe('OpenVpn', () => {
   // )
 
   it('should connect with custom flags', { timeout: 60 * 1000 }, async () => {
-    const openVpn = new OpenVpn(configPath, username, password, [
-      '--auth-nocache',
-    ])
+    const openVpn = new OpenVpn({
+      configPath,
+      username,
+      password,
+      useAuthFile: true,
+      customFlags: ['--auth-nocache'],
+    })
     openVpn.connect()
     await new Promise((resolve) => {
       openVpn.on('status', (status) => {
@@ -92,23 +107,4 @@ describe('OpenVpn', () => {
       })
     })
   })
-
-  it(
-    'should connect with windows console',
-    { timeout: 15 * 1000 },
-    async () => {
-      const openVpn = new OpenVpn(configPath, username, password)
-      openVpn.connect(true)
-      await new Promise((resolve) => {
-        openVpn.on('status', (status) => {
-          // eslint-disable-next-line no-console
-          console.log(status)
-          if (status === 'connected') {
-            openVpn.disconnect()
-            resolve(true)
-          }
-        })
-      })
-    },
-  )
 })

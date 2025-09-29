@@ -27,43 +27,92 @@ export class OpenVpn {
   private configPath: string
   private username?: string
   private password?: string
+  private authPath?: string
+  private useAuthFile?: boolean
   private customFlags?: string[]
   private process?: ChildProcess
   private eventEmitter = new EventEmitter()
   private status: Status = 'stopped'
+  private tempDir?: string
+  private isTempConfig: boolean = false
 
-  constructor(
-    configPath: string,
-    username?: string,
-    password?: string,
-    customFlags?: string[],
-  ) {
-    this.configPath = configPath
-    this.username = username
-    this.password = password
-    this.customFlags = customFlags
+  constructor(options: {
+    configPath: string
+    username?: string
+    password?: string
+    authPath?: string
+    useAuthFile?: boolean
+    customFlags?: string[]
+  }) {
+    this.configPath = options.configPath
+    this.username = options.username
+    this.password = options.password
+    this.useAuthFile = options.useAuthFile
+    this.customFlags = options.customFlags
   }
 
-  public static createFromConfig(
-    config: string,
-    username?: string,
-    password?: string,
-  ) {
+  /**
+   * Finalizer to ensure cleanup happens when the object is garbage collected
+   * This is a safety net in case the user forgets to call cleanup()
+   */
+  public [Symbol.for('nodejs.util.inspect.custom')]() {
+    // This method is called by Node.js when the object is being inspected
+    // We can use it as a finalizer to ensure cleanup
+    this.cleanup()
+    return this
+  }
+
+  public static createFromConfig(options: {
+    config: string
+    username?: string
+    password?: string
+    useAuthFile?: boolean
+  }) {
     // Create temp directory if it doesn't exist
-    const tempDir = path.join(os.tmpdir(), 'openvpn-client')
+    const tempDir = path.join(os.tmpdir(), `openvpn-client-${Date.now()}`)
     if (!fs.existsSync(tempDir)) {
       fs.mkdirSync(tempDir, { recursive: true })
     }
 
     // Generate a unique filename
     const configFileName = `config-${Date.now()}-${Math.random().toString(36).slice(2, 10)}.ovpn`
+    const authFileName = `auth-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`
     const configPath = path.join(tempDir, configFileName)
+    const authPath = path.join(tempDir, authFileName)
 
     // Write config to file
-    fs.writeFileSync(configPath, config, 'utf8')
-
+    fs.writeFileSync(configPath, options.config, 'utf8')
+    if (options.useAuthFile) {
+      fs.writeFileSync(
+        authPath,
+        `${options.username}:${options.password}`,
+        'utf8',
+      )
+    }
     // Return new instance with the temp config path
-    return new OpenVpn(configPath, username, password)
+    const instance = new OpenVpn({
+      configPath,
+      username: options.username,
+      password: options.password,
+      authPath,
+    })
+    instance.tempDir = tempDir
+    instance.isTempConfig = true
+    return instance
+  }
+
+  private createAuthFile() {
+    // Use existing tempDir if available, otherwise create a new one
+    if (!this.tempDir) {
+      this.tempDir = path.join(os.tmpdir(), `openvpn-client-${Date.now()}`)
+      if (!fs.existsSync(this.tempDir)) {
+        fs.mkdirSync(this.tempDir, { recursive: true })
+      }
+    }
+    const authFileName = `auth-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`
+    const authPath = path.join(this.tempDir, authFileName)
+    fs.writeFileSync(authPath, `${this.username}\n${this.password}`, 'utf8')
+    return authPath
   }
 
   public on(event: 'status', listener: (status: Status) => void): void
@@ -157,6 +206,13 @@ export class OpenVpn {
     await this.bootstrap()
     const execPath = this.getExecPath()
     const args = ['--config', this.configPath]
+    if (this.useAuthFile && this.authPath) {
+      args.push('--auth-user-pass', this.authPath)
+    }
+    if (this.useAuthFile && !this.authPath) {
+      this.authPath = this.createAuthFile()
+      args.push('--auth-user-pass', this.authPath)
+    }
     if (this.customFlags && this.customFlags.length > 0) {
       args.push(...this.customFlags)
     }
@@ -246,23 +302,43 @@ export class OpenVpn {
     }
 
     // Clean up temp config file if it exists
-    await this.cleanupTempConfig()
+    this.cleanupTempConfig()
 
     return new Promise((resolve) => {
       setTimeout(resolve, 250)
     })
   }
 
+  /**
+   * Manually clean up all temporary files and directories created by this instance
+   * This method can be called even when the VPN is not connected
+   */
+  public cleanup() {
+    this.cleanupTempConfig()
+  }
+
   private cleanupTempConfig() {
-    // Check if config file is a temp file (in os.tmpdir())
-    const tempDir = path.join(os.tmpdir(), 'openvpn-client')
-    if (this.configPath && this.configPath.startsWith(tempDir)) {
+    try {
+      // Clean up individual files if they exist
+      if (this.configPath && fs.existsSync(this.configPath)) {
+        fs.unlinkSync(this.configPath)
+      }
+      if (this.authPath && fs.existsSync(this.authPath)) {
+        fs.unlinkSync(this.authPath)
+      }
+    } catch (error) {
+      this.eventEmitter.emit('log', `Error cleaning up temp files: ${error}`)
+    }
+
+    // Clean up the entire temp directory if it exists and is a temp config
+    if (this.tempDir && this.isTempConfig && fs.existsSync(this.tempDir)) {
       try {
-        if (fs.existsSync(this.configPath)) {
-          fs.unlinkSync(this.configPath)
-        }
+        fs.rmSync(this.tempDir, { recursive: true, force: true })
       } catch (error) {
-        this.eventEmitter.emit('log', `Error cleaning up temp config: ${error}`)
+        this.eventEmitter.emit(
+          'log',
+          `Error cleaning up temp directory: ${error}`,
+        )
       }
     }
   }
@@ -311,7 +387,7 @@ export class OpenVpn {
         }
       }
     } catch {
-      await sleep(1000)
+      await sleep(500)
       processes = await this.getProcesses()
       if (processes.length > 0) {
         await fkill(

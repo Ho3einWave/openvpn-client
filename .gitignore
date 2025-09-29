@@ -6,3 +6,4 @@ dist
 .eslintcache
 .env
 tmp/config/config.ovpn
+tmp/config/auth
