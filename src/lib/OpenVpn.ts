@@ -95,6 +95,7 @@ export class OpenVpn {
       username: options.username,
       password: options.password,
       authPath,
+      useAuthFile: options.useAuthFile,
     })
     instance.tempDir = tempDir
     instance.isTempConfig = true
