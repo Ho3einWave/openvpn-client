@@ -67,6 +67,7 @@ export class OpenVpn {
     username?: string
     password?: string
     useAuthFile?: boolean
+    customFlags?: string[]
   }) {
     // Create temp directory if it doesn't exist
     const tempDir = path.join(os.tmpdir(), `openvpn-client-${Date.now()}`)
@@ -96,6 +97,7 @@ export class OpenVpn {
       password: options.password,
       authPath,
       useAuthFile: options.useAuthFile,
+      customFlags: options.customFlags,
     })
     instance.tempDir = tempDir
     instance.isTempConfig = true
