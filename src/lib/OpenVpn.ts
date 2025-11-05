@@ -405,8 +405,9 @@ export class OpenVpn {
     this.eventEmitter.emit('log', line)
 
     if (
-      line.includes('PUSH: Received control message') ||
-      line.includes('Initialization Sequence Completed')
+      (line.includes('PUSH: Received control message') ||
+        line.includes('Initialization Sequence Completed')) &&
+      this.status !== 'connected'
     ) {
       this.status = 'connected'
       this.eventEmitter.emit('status', this.status)
